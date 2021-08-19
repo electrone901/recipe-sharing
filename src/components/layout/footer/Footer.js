@@ -33,7 +33,7 @@ function Footer() {
               <span>/</span>
 
               <Link className="link" component={RouterLink} to="/">
-                Create a Pet
+                Create a Recipe
               </Link>
               <span>/</span>
 
@@ -56,7 +56,7 @@ function Footer() {
 
             <Grid item xs={12} sm={9}>
               <Typography className="copyright">
-                Copyright &copy; {new Date().getFullYear()} PetGram
+                Copyright &copy; {new Date().getFullYear()} Recipe Sharing 
               </Typography>
             </Grid>
           </Grid>
