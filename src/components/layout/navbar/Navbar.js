@@ -111,14 +111,14 @@ export const Navbar = withRouter(({ account, loadWeb3 }) => {
             </Link>
             <Link to="/" className="whiteLink">
               <Typography className="title" variant="h6" noWrap>
-                Recipe Sharing
+                Art⨁Food
               </Typography>
             </Link>
             <Button className="whiteLink" component={Link} to="/">
               Home
             </Button>
 
-            <Button className="whiteLink" component={Link} to="/create-pet">
+            <Button className="whiteLink" component={Link} to="/create-recipe">
               Create Recipe
             </Button>
 
@@ -126,7 +126,7 @@ export const Navbar = withRouter(({ account, loadWeb3 }) => {
             <div className="sectionDesktop">
               {account ? (
                 <>
-                  <Button className="whiteLink" to="/create-pet">
+                  <Button className="whiteLink" to="/create-recipe">
                     {account.substring(0, 8)}...{account.substring(32, 24)}
                   </Button>
                   <Button

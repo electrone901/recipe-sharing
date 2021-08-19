@@ -1,24 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  ImageListItem,
-  IconButton,
-  Button,
-  ImageListItemBar,
   Grid,
   Card,
-  CardHeader,
-  Avatar,
   CardMedia,
   CardContent,
   Typography,
-  CardActions,
   Box,
 } from '@material-ui/core'
 import Rating from '@material-ui/lab/Rating'
-import MoreVertIcon from '@material-ui/icons/MoreVert'
-import FavoriteIcon from '@material-ui/icons/Favorite'
 import ShareIcon from '@material-ui/icons/Share'
+import { apiKey } from '../../APIKEYS'
 
 import CircularStatic from '../commons/CircularProgressWithLabel'
 
@@ -30,12 +22,52 @@ function GalleryRecipies() {
     const loadRecipes = async () => {
       try {
         setLoading(true)
-        // get the recipes from nftStorage
+
+        let cids = await fetch('https://api.nft.storage', {
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        })
+        cids = await cids.json()
+        console.log('🚀  cids', cids)
+
+        const temp = []
+        for (let cid of cids.value) {
+          if (cid?.cid) {
+            let data = await fetch(
+              `https://ipfs.io/ipfs/${cid.cid}/metadata.json`,
+            )
+
+            data = await data.json()
+            const dataArray = data.description.split(',')
+            console.log(' dataArray', dataArray)
+            data.creator = dataArray[0]
+            data.type = dataArray[1]
+            data.intro = dataArray[2]
+
+            // formats the imageURL
+            const getImage = (ipfsURL) => {
+              if (!ipfsURL) return
+              ipfsURL = ipfsURL.split('://')
+              return 'https://ipfs.io/ipfs/' + ipfsURL[1]
+            }
+
+            data.image = await getImage(data.image)
+            data.cid = cid.cid
+            data.created = cid.created
+            temp.push(data)
+          }
+        }
+        setRecipesData(temp)
+        setLoading(false)
       } catch (error) {
         console.log(error)
+        setLoading(false)
       }
     }
-  })
+    loadRecipes()
+  }, [])
 
   const data = [
     {
@@ -120,11 +152,13 @@ function GalleryRecipies() {
     },
   ]
 
+  console.log('recip', recipesData)
+
   return (
     <div style={{ minHeight: '70vh', paddingBottom: '3rem' }}>
       <Grid container spacing={1}>
-        {data.length ? (
-          data.map((recipe, index) => (
+        {recipesData.length ? (
+          recipesData.map((recipe, index) => (
             <Grid
               item
               xs={6}
@@ -132,56 +166,68 @@ function GalleryRecipies() {
               key={index}
               style={{ paddingBottom: '2rem' }}
             >
-              <Card>
-                <CardMedia
-                  style={{ height: '8rem', paddingTop: '56.25%' }}
-                  image={recipe.image}
-                  title={recipe.name}
-                />
+              <Link
+                to={`recipe/${recipe.cid}`}
+                style={{ textDecoration: 'none' }}
+              >
+                <Card>
+                  <CardMedia
+                    style={{ height: '8rem', paddingTop: '56.25%' }}
+                    image={recipe.image}
+                    title={recipe.name}
+                  />
 
-                <CardContent style={{ textAlign: 'initial' }}>
-                  <Typography variant="subtitle1" color="textPrimary">
-                    {recipe.name}
-                  </Typography>
+                  <CardContent style={{ textAlign: 'initial' }}>
+                    <Typography variant="subtitle1" color="textPrimary">
+                      {recipe.name}
+                    </Typography>
 
-                  <Box
-                    component="fieldset"
-                    borderColor="transparent"
-                    style={{ height: '20px', paddingLeft: '0px' }}
-                  >
-                    <Rating name="read-only" value={recipe.rating} readOnly />
-                    <span
-                      style={{
-                        verticalAlign: 'super',
-                        fontSize: '0.75rem',
-                        paddingLeft: '0.5rem',
-                      }}
+                    <Box
+                      component="fieldset"
+                      borderColor="transparent"
+                      style={{ height: '20px', paddingLeft: '0px' }}
                     >
-                      122
-                    </span>
-                  </Box>
+                      <Rating name="read-only" value={5} readOnly />
+                      <span
+                        style={{
+                          verticalAlign: 'super',
+                          fontSize: '0.75rem',
+                          paddingLeft: '0.5rem',
+                        }}
+                      >
+                        0
+                      </span>
+                    </Box>
 
-                  <Typography
-                    variant="body2"
-                    color="textSecondary"
-                    component="p"
-                  >
-                    {recipe.intro}
-                  </Typography>
+                    <Typography
+                      variant="body2"
+                      color="textSecondary"
+                      component="p"
+                    >
+                      Type: {recipe.type}
+                    </Typography>
 
-                  <Typography
-                    variant="body1"
-                    color="textSecondary"
-                    component="p"
-                  >
-                    <span style={{ fontSize: '0.87rem' }}>By </span>
-                    <span style={{ fontWeight: 'bold', fontSize: '0.87rem' }}>
-                      {recipe.creator}
-                    </span>
-                    {/* ["h1","h2","h3","h4","h5","h6","subtitle1","subtitle2","body1","body2","caption","button","overline","srOnly","inherit"]. */}
-                  </Typography>
-                </CardContent>
-              </Card>
+                    <Typography
+                      variant="body2"
+                      color="textSecondary"
+                      component="p"
+                    >
+                      {recipe.intro}
+                    </Typography>
+
+                    <Typography
+                      variant="body1"
+                      color="textSecondary"
+                      component="p"
+                    >
+                      <span style={{ fontSize: '0.87rem' }}>By </span>
+                      <span style={{ fontWeight: 'bold', fontSize: '0.87rem' }}>
+                        {recipe.creator}
+                      </span>
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Link>
             </Grid>
           ))
         ) : (
